@@ -1,4 +1,6 @@
 import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+dotenv.config()
 const mongoURL=process.env.DB_URL
 
 export default function connectToDB(){

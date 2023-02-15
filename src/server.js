@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import connectToDB from './db.js'
 import {route as userRoute}  from './routes/user.js'
 import {route as postRoute}  from './routes/posts.js'
-import {route as authRoute}  from './routes/posts.js'
+import {route as authRoute}  from './routes/auth.js'
 dotenv.config()
 
 const app=express()
