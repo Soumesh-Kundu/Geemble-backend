@@ -2,6 +2,7 @@ import express from 'express'
 import {authenticate,upload}from '../middleware/index.js'
 import Post from '../models/Post.js'
 import User from '../models/User.js'
+import { unlink } from 'fs/promises'
 
 export const route=express.Router()
 
@@ -22,11 +23,11 @@ route.post("/create",authenticate,upload.single('uploadImage'),async(req,res)=>{
             PostObject.caption=req.body.caption
         }
         const {username}=await userPromise
-        const post= await Post.create({
+        await Post.create({
             user,username,...PostObject
         })
         success=true
-        res.status(200).json({success,post})
+        res.status(200).json({success,messege:"Your post has uploaded"})
     } catch (error) {
         console.log(error)
         return res.status(500).json({ success,Error: "Some Error has occured" })  
@@ -38,13 +39,13 @@ route.patch('/update/:id',authenticate,async(req,res)=>{
     try {
         const id=req.params.id
         const caption=req.body.caption
-        let post= await Post.findById(id)
+        const post= await Post.findById(id)
         if(post.user.toString()!==req.user.id){ 
             return res.status(401).json({success,error:"Not Allowed!"})
         }
-        post=await Post.findByIdAndUpdate(id,{$set:{caption}},{new:true})
+        await Post.findByIdAndUpdate(id,{$set:{caption}})
         success=true
-        res.status(200).json({success,post})
+        res.status(200).json({success,messege:"Your post has updated"})
     } catch (error) {
         console.log(error)
         return res.status(500).json({ success,Error: "Some Error has occured" })  
@@ -59,9 +60,7 @@ route.delete('/delete/:id',authenticate,async(req,res)=>{
         if(post.user.toString()!==req.user.id){ 
             return res.status(401).json({success,error:"Not Allowed!"})
         }
-        if(post.user.toString()!==req.user.id){ 
-            return res.status(401).json({success,error:"Not Allowed!"})
-        }
+        unlink(post.postedImage)
         await Post.findByIdAndDelete(id)
         success=true
         res.status(200).json({success,messege:"Post Deleted"})
@@ -88,7 +87,8 @@ route.get('/getPosts',authenticate,async(req,res)=>{
         })
         
     } catch (error) {
-        
+        console.log(error)
+        return res.status(500).json({ success,Error: "Some Error has occured" }) 
     }
 })
 
@@ -109,6 +109,70 @@ route.get('/getPosts/:username',authenticate,async(req,res)=>{
             posts
         })
     } catch (error) {
-        
+        console.log(error)
+        return res.status(500).json({ success,Error: "Some Error has occured" }) 
+    }
+})
+
+route.post('/liked/:id',authenticate,async(req,res)=>{
+    let success=false
+    try {
+        const id=req.params.id
+        const {username}=req.body
+        const post=await Post.findById(id)
+        let liked= post.likes.find(data=>data.user===username)?true:false
+        if(liked){
+            await Post.findByIdAndUpdate(id,{$pull:{likes:{user:username}}})
+        }
+        else{
+            await Post.findByIdAndUpdate(id,{$push:{likes:{user:username}}})
+        }
+        success=true
+        res.status(200).json({success,messege:`You liked a post from ${post.username}`})
+    } 
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({ success,Error: "Some Error has occured" }) 
+    }
+})
+
+
+route.post('/comment/:id',authenticate,async(req,res)=>{
+    let success=false
+    try {
+        const id=req.params.id
+        const {username,profilePicture}=await User.findById(req.user.id)
+        const commentObject={
+            username,
+            profilePicture,
+            comment:req.body.comment
+        }
+        const UpdatePost=await Post.findByIdAndUpdate(id,{$push:{comments:commentObject}})
+        success=true
+        res.status(200).json({success,messege:`You commented on a post from ${UpdatePost.username}`})
+    } 
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({ success,Error: "Some Error has occured" }) 
+    }
+})
+
+route.delete('/comment/:id',authenticate,async(req,res)=>{
+    let success=false
+    try {
+        const id=req.params.id
+        const comment_id=req.query.commentId
+        let post= await Post.findById(id)
+        let unauthorized=post.comments.find(data=>data.username===req.body.username&&data._id.toString()===comment_id)?false:true
+        if(unauthorized){ 
+            return res.status(401).json({success,error:"Not Allowed!"})
+        }
+        await Post.findByIdAndUpdate(id,{$pull:{comments:{_id:comment_id}}},{new:true})
+        success=true
+        res.status(200).json({success,messege:`You deleted your comment from this post of ${post.username}`})
+    } 
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({ success,Error: "Some Error has occured" }) 
     }
 })

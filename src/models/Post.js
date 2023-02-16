@@ -7,14 +7,14 @@ const PostSchema = mongoose.Schema({
     postedImage: { type: String },
     Date:{type:Date,default:Date.now},
     likes:{type:[{
-        user: { type: String }
+        user: { type: String,unique:true }
     }],default:[]},
     comments:{
         type:[{
-            id:mongoose.Schema.Types.ObjectId,
             username:String,
             profilePicture:String,
-            Date:{type:String,default:Date.now}
+            comment:String,
+            Date:{type:Date,default:Date.now}
         }],default:[]
     }
 })

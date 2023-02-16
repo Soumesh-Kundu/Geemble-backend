@@ -29,13 +29,16 @@ route.post('/register',[
     }
     try {
         const {name,username,email,password}=req.body
-        let user=await User.findOne({email})
-        if(user){
-            return res.status(400).json({ success, error: "Sorry but this user already Exists" })
-        }
-        user=await User.findOne({username})
-        if(user && username===user.username){
-            return res.status(400).json({ success, error: "username is already taken" })
+        let user=await User.find({$or:[{email},{username}]})
+        if(user.length){
+            const sameEmail=user.find((data)=>data.email==email)
+            const sameUserName=user.find((data)=>data.username==username)
+            if(sameEmail){
+                return res.status(400).json({ success, error: "Sorry but this user already exists" })
+            }
+            if(sameUserName){
+                return res.status(400).json({ success, error: "username is already taken" })
+            }
         }
         const salt = await bcrypt.genSalt(15)
         const secPass = await bcrypt.hash(password, salt)

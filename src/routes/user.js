@@ -3,6 +3,8 @@ import { authenticate,upload } from '../middleware/index.js'
 import User from '../models/User.js'
 import OTP from '../models/OTP.js'
 import {OTPGenerator,mailsender,OtpVerifier}from '../helpers/index.js'
+import { unlink } from 'fs/promises'
+
 export const route=express.Router()
 
 route.get('/',(req,res)=>{
@@ -28,10 +30,9 @@ route.get('/getDetails',authenticate,async (req,res)=>{
 route.patch('/update',authenticate,async(req,res)=>{
     let success=false
     try{
-        const {username,email}=req.body
-        const user=await User.findByIdAndUpdate(req.user.id,{$set:{...req.body}},{new:true}).select('-password')
+        await User.findByIdAndUpdate(req.user.id,{$set:{...req.body}})
         success=true
-        return res.status(200).json({success,result:user})
+        return res.status(200).json({success,messege:"Your profile is been updated"})
     }
     catch(err){
         console.log(err)
@@ -122,11 +123,11 @@ route.get('/searchUser',authenticate,async(req,res)=>{
     }
 })
 
-route.get('/getUser/:id',authenticate,async(req,res)=>{
+route.get('/getUser/:username',authenticate,async(req,res)=>{
     let success=false
     try {
-        const id=req.params.id
-        const user=await User.findById(id).select('-password -verified -email -_id')
+        const username=req.params.username
+        const user=await User.findOne({username}).select('-password -verified -email -_id')
         success=true
         res.status(200).json({
             success,
@@ -142,9 +143,10 @@ route.post('/changeDP',authenticate,upload.single('uploadImage'),async(req,res)=
     let success=false
     try {
         const filepath=req.file.path.replace(/\\/g,'/')
-        const user=await User.findByIdAndUpdate(req.user.id,{$set:{profilePicture:filepath}},{new:true})
+        const user=await User.findByIdAndUpdate(req.user.id,{$set:{profilePicture:filepath}})
+        unlink(user.profilePicture)
         success=true
-        res.status(200).json({success,user})
+        res.status(200).json({success,messege:"Dp changed"})
     } catch (error) {
         
     }
