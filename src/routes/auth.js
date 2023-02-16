@@ -127,7 +127,9 @@ route.post('/verify',async (req,res)=>{
             return res.status(401).json({success,error:"OTP doesn't exist"})
         }
         if(Date.now()-code.created_At>60000){
-            return res.status(408).json({success,error:"OTP has expired"})
+            res.status(408).json({success,error:"OTP has expired"})
+            await OTP.findByIdAndDelete(code.id)
+            return 
         }
         const verified=OtpVerifier(code.secret,token)
         if(!verified){

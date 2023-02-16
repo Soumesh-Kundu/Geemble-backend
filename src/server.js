@@ -11,6 +11,7 @@ const PORT=process.env.PORT ?? 5000
 connectToDB()
 
 app.use(express.json())
+app.use('/api/uploads',express.static('uploads'))
 app.use('/api/auth',authRoute)
 app.use('/api/user',userRoute)
 app.use('/api/posts',postRoute)

@@ -1,5 +1,5 @@
 import express from 'express'
-import { authenticate,uploadImage } from '../middleware/index.js'
+import { authenticate,upload } from '../middleware/index.js'
 import User from '../models/User.js'
 import OTP from '../models/OTP.js'
 import {OTPGenerator,mailsender,OtpVerifier}from '../helpers/index.js'
@@ -82,7 +82,9 @@ route.patch('/verified',authenticate,async(req,res)=>{
             return res.status(401).json({success,error:"OTP doesn't exist"})
         }
         if(Date.now()-code.created_At>60000){
-            return res.status(408).json({success,error:"OTP has expired"})
+            res.status(408).json({success,error:"OTP has expired"})
+            await OTP.findByIdAndDelete(code.id)
+            return
         }
         const verified=OtpVerifier(code.secret,token)
         if(!verified){
@@ -101,8 +103,13 @@ route.patch('/verified',authenticate,async(req,res)=>{
 route.get('/searchUser',authenticate,async(req,res)=>{
     let success=false
     try {
-        const name=req.query.username
-        const users=await User.find({username:{$regex:name}}).select('-password -verified -email').then(datas=>datas.filter(data=>data.id!==req.user.id))
+        const username=req.query.username
+        if(!username.length){
+            return res.status(200).json({success,
+                totalResults:username.length,
+                result:null})
+        }
+        const users=await User.find({username:{$regex:username}}).select('-password -verified -email -_id').then(datas=>datas.filter(data=>data.id!==req.user.id))
         success=true
         res.status(200).json({
             success,
@@ -119,7 +126,7 @@ route.get('/getUser/:id',authenticate,async(req,res)=>{
     let success=false
     try {
         const id=req.params.id
-        const user=await User.findById(id).select('-password -verified -email')
+        const user=await User.findById(id).select('-password -verified -email -_id')
         success=true
         res.status(200).json({
             success,
@@ -128,5 +135,17 @@ route.get('/getUser/:id',authenticate,async(req,res)=>{
     } catch (error) {
         console.log(error)
         return res.status(500).json({ success,Error: "Some Error has occured" })  
+    }
+})
+
+route.post('/changeDP',authenticate,upload.single('uploadImage'),async(req,res)=>{
+    let success=false
+    try {
+        const filepath=req.file.path.replace(/\\/g,'/')
+        const user=await User.findByIdAndUpdate(req.user.id,{$set:{profilePicture:filepath}},{new:true})
+        success=true
+        res.status(200).json({success,user})
+    } catch (error) {
+        
     }
 })
