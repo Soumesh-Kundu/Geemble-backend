@@ -12,7 +12,7 @@ import OTPcheck from '../middleware/OTPcheck.js'
 
 export const route = express.Router()
 const JWT_SECRET = process.env.JWT_SECRET
-const maleDefault = new Array(4).fill("").map((_, index) => `uploads/defaults/male${index + 1}.png`)
+const maleDefault = new Array(3).fill("").map((_, index) => `uploads/defaults/male${index + 1}.png`)
 const femaleDefault = new Array(4).fill("").map((_, index) => `uploads/defaults/female${index + 1}.png`)
 route.get('/', (req, res) => {
     res.send("this is from auth route")
