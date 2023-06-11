@@ -36,4 +36,5 @@ export default async function mailSender(mailBody){
             raw
         }
     })
+    console.log(id)
 }
