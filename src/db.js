@@ -8,8 +8,12 @@ export default function connectToDB(){
     mongoose.connect(mongoURL,{
         useNewUrlParser: true,
         useUnifiedTopology: true
-    },()=>{
-        console.log("connected to database");
+    })
+    mongoose.connection.on('connected',()=>{
+        console.log('database connected')
+    })
+    mongoose.connection.on('error',()=>{
+        console.log(`database couldn't connected`)
     })
 }
 
