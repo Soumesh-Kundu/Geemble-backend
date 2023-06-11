@@ -22,9 +22,9 @@ route.post("/create",authenticate,upload.single('uploadImage'),async(req,res)=>{
         if(req.body.caption){
             PostObject.caption=req.body.caption
         }
-        const {username}=await userPromise
+        const {username,profilePicture}=await userPromise
         await Post.create({
-            user,username,...PostObject
+            user,username,profilePicture,...PostObject
         })
         success=true
         res.status(200).json({success,messege:"Your post has uploaded"})
@@ -60,7 +60,9 @@ route.delete('/delete/:id',authenticate,async(req,res)=>{
         if(post.user.toString()!==req.user.id){ 
             return res.status(401).json({success,error:"Not Allowed!"})
         }
-        unlink(post.postedImage)
+        if(post.postedImage){
+            unlink(post.postedImage)
+        }
         await Post.findByIdAndDelete(id)
         success=true
         res.status(200).json({success,messege:"Post Deleted"})
@@ -81,8 +83,8 @@ route.get('/getPosts',authenticate,async(req,res)=>{
         res.status(200).json({
             success,
             totalsPosts,
-            hasNext:page*limit<totalsPosts?true:false,
-            hasPrevios:page>1?true:false,
+            nextPage:page*limit<totalsPosts?parseInt(page)+1:undefined,
+            previosPage:page>1?parseInt(page)-1:undefined,
             posts
         })
         
@@ -104,8 +106,8 @@ route.get('/getPosts/:username',authenticate,async(req,res)=>{
         res.status(200).json({
             success,
             totalsPosts,
-            hasNext:page*limit<totalsPosts?true:false,
-            hasPrevios:page>1?true:false,
+            nextPage:page*limit<totalsPosts?parseInt(page+1):undefined,
+            previosPage:page>1?parseInt(page)-1:undefined,
             posts
         })
     } catch (error) {
@@ -118,14 +120,14 @@ route.post('/liked/:id',authenticate,async(req,res)=>{
     let success=false
     try {
         const id=req.params.id
-        const {username}=req.body
+        const {username,profilePicture}=req.body
         const post=await Post.findById(id)
         let liked= post.likes.find(data=>data.user===username)?true:false
         if(liked){
             await Post.findByIdAndUpdate(id,{$pull:{likes:{user:username}}})
         }
         else{
-            await Post.findByIdAndUpdate(id,{$push:{likes:{user:username}}})
+            await Post.findByIdAndUpdate(id,{$push:{likes:{user:username,profilePicture}}})
         }
         success=true
         res.status(200).json({success,messege:`You liked a post from ${post.username}`})
@@ -141,15 +143,15 @@ route.post('/comment/:id',authenticate,async(req,res)=>{
     let success=false
     try {
         const id=req.params.id
-        const {username,profilePicture}=await User.findById(req.user.id)
+        const {username,profilePicture,comment}=req.body
         const commentObject={
             username,
             profilePicture,
-            comment:req.body.comment
+            comment
         }
-        const UpdatePost=await Post.findByIdAndUpdate(id,{$push:{comments:commentObject}})
+        const UpdatePost=await Post.findByIdAndUpdate(id,{$push:{comments:commentObject}},{new:true})
         success=true
-        res.status(200).json({success,messege:`You commented on a post from ${UpdatePost.username}`})
+        res.status(200).json({success,comments:UpdatePost.comments})
     } 
     catch (error) {
         console.log(error)
@@ -162,14 +164,17 @@ route.delete('/comment/:id',authenticate,async(req,res)=>{
     try {
         const id=req.params.id
         const comment_id=req.query.commentId
-        let post= await Post.findById(id)
-        let unauthorized=post.comments.find(data=>data.username===req.body.username&&data._id.toString()===comment_id)?false:true
+        let postPromise= Post.findById(id)
+        let userPromise= User.findById(req.user.id)
+        const [post,user]=await Promise.all([postPromise,userPromise])
+        
+        let unauthorized=post.comments.find(data=>data.username===user.username&&data._id.toString()===comment_id)?false:true
         if(unauthorized){ 
             return res.status(401).json({success,error:"Not Allowed!"})
         }
-        await Post.findByIdAndUpdate(id,{$pull:{comments:{_id:comment_id}}},{new:true})
+        const newPost=await Post.findByIdAndUpdate(id,{$pull:{comments:{_id:comment_id}}},{new:true})
         success=true
-        res.status(200).json({success,messege:`You deleted your comment from this post of ${post.username}`})
+        res.status(200).json({success,comments:newPost.comments})
     } 
     catch (error) {
         console.log(error)

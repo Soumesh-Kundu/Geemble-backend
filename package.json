@@ -4,17 +4,21 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon ./src/server.js --w ./src/**/*",
-    "start": "node ./src/server.js"
+    "start": "node ./src/server.js",
+    "mail":"node ./src/helpers/Mailer.js"
   },
   "dependencies": {
+    "@googleapis/gmail": "^2.0.1",
     "bcrypt": "^5.1.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-validator": "^6.14.3",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.9.1",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.1",
+    "sharp": "^0.31.3",
     "speakeasy": "^2.0.0"
   },
   "devDependencies": {

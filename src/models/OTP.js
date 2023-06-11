@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 
 const OTPSchema = mongoose.Schema({
     secret:{type:String,require:true},
-    token:{type:String,require:true},
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     created_At:{type:Date,default:Date.now},
 })
