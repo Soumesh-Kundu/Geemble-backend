@@ -1,6 +1,7 @@
 import express from 'express'
 import { authenticate, upload } from '../middleware/index.js'
 import User from '../models/User.js'
+import Posts from '../models/Post.js'
 import OTP from '../models/OTP.js'
 import { OTPGenerator, mailsender, OtpVerifier } from '../helpers/index.js'
 import { unlink } from 'fs/promises'
@@ -161,6 +162,7 @@ route.post('/changeDP', authenticate, upload.single('uploadImage'), async (req, 
         const user = await User.findByIdAndUpdate(req.user.id, { $set: { profilePicture: filepath } })
         unlink(user.profilePicture)
         success = true
+        await Posts.updateMany({user:user.id},{profilePicture:filepath})
         res.status(200).json({ success, messege: "Dp changed" })
     } catch (error) {
         console.log(error)
