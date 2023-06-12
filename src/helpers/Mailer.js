@@ -1,5 +1,4 @@
 import google from '@googleapis/gmail'
-import Credentials from '../../Credentials.json' assert {type:'json'}
 import {config} from 'dotenv'
 
 config()
