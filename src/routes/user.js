@@ -100,13 +100,13 @@ route.post('/resend', authenticate, OTPcheck, async (req, res) => {
             return res.status(200).json({success,error:"Unauthorized"})
         }
         success = true
-        res.status(200).json({ success, msg: 'OTP resended',OTPtoken})
          await mailsender({
             from: "Resend Verfication Email<noreply.geemble@gmail.com>",
             to: user.email,
             subject: 'Verfication email',
             body: `<p style="font-size:14px">Your resended OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
         })
+         return  res.status(200).json({ success, msg: 'OTP resended',OTPtoken})
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "something happend" })

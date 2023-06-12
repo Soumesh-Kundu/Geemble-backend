@@ -1,9 +1,15 @@
 import google from '@googleapis/gmail'
-import Credentials from '../../Credentials.json' assert {type:'json'}
 import {config} from 'dotenv'
 
 config()
-const {client_id,client_secret,redirect_uris}=Credentials.web
+const credentialsObj={
+        client_id: "1004406759218-25gdom7ca0eu5g5mg4tmtlemmbpsou6d.apps.googleusercontent.com",
+        client_secret: "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",
+        redirect_uris: [
+            "http://localhost:3000"
+        ]
+    }
+const {client_id,client_secret,redirect_uris}=credentialsObj
 const Oauth2Client=new google.auth.OAuth2(client_id,client_secret,redirect_uris[0])
 
 Oauth2Client.setCredentials({refresh_token:process.env.GMAIL_REFRESH_TOKEN})
@@ -36,4 +42,5 @@ export default async function mailSender(mailBody){
             raw
         }
     })
+    console.log(id)
 }

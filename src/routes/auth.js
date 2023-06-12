@@ -12,7 +12,7 @@ import OTPcheck from '../middleware/OTPcheck.js'
 
 export const route = express.Router()
 const JWT_SECRET = process.env.JWT_SECRET
-const maleDefault = new Array(4).fill("").map((_, index) => `uploads/defaults/male${index + 1}.png`)
+const maleDefault = new Array(3).fill("").map((_, index) => `uploads/defaults/male${index + 1}.png`)
 const femaleDefault = new Array(4).fill("").map((_, index) => `uploads/defaults/female${index + 1}.png`)
 route.get('/', (req, res) => {
     res.send("this is from auth route")
@@ -64,13 +64,13 @@ route.post('/register', [
         success = true
         const authToken = JWT.sign(data, JWT_SECRET)
         const OTPtoken = JWT.sign(Otp, JWT_SECRET)
-        res.status(201).json({ success, authToken, OTPtoken })
         await mailsender({
             from: "Verfication Email<noreply.geemble@gmail.com>",
             to: response.email,
             subject: 'Verfication email',
             body: `<p style="font-size:14px">Your OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
         })
+       return res.status(201).json({ success, authToken, OTPtoken })
     } catch (error) {
         console.log(error)
         res.status(500).json({ success, Error: "Some Error has occured" })
@@ -127,14 +127,14 @@ route.post('/forgetPassword', [body('email', 'Enter a Valid Email').isEmail()], 
         }
         success = true
         const OTPtoken = JWT.sign(Otp, JWT_SECRET)
-        res.status(200).json({ success, msg: "OTP sended", OTPtoken })
+        
         await mailsender({
             from: "Password Reset Verification<noreply.geemble@gmail.com>",
             to: email,
             subject: 'Verify Yourself',
             body: `<p style="font-size:14px">Your OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
         })
-
+        return res.status(200).json({ success, msg: "OTP sended", OTPtoken })
         console.log("sent")
     } catch (error) {
         console.log(error)
@@ -185,13 +185,13 @@ route.post('/resend', OTPcheck, async (req, res) => {
         const code = await OTP.findByIdAndUpdate(codeId, { $set: { secret, created_At: Date.now() } }, { new: true })
         const user = await User.findById(code.user)
         success = true
-        res.status(200).json({ success, msg: 'OTP resended', OTPtoken })
         await mailsender({
             from: "Resend Verfication Email<noreply.geemble@gmail.com>",
             to: user.email,
             subject: 'Verfication email',
             body: `<p style="font-size:14px">Your resended OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
         })
+     return res.status(200).json({ success, msg: 'OTP resended', OTPtoken })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "something happend" })
