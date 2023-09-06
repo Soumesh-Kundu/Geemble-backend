@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon ./src/server.js --w ./src/**/*",
     "start": "node ./src/server.js",
-    "mail":"node ./src/helpers/Mailer.js"
+    "mail": "node ./src/helpers/Mailer.js"
   },
   "dependencies": {
     "@googleapis/gmail": "^2.0.1",
@@ -15,6 +15,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-validator": "^6.14.3",
+    "firebase": "^10.3.1",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.9.1",
     "multer": "^1.4.5-lts.1",

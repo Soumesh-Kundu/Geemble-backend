@@ -7,6 +7,8 @@ import { OTPGenerator, mailsender, OtpVerifier } from '../helpers/index.js'
 import { unlink } from 'fs/promises'
 import OTPcheck from '../middleware/OTPcheck.js'
 import bcrypt from 'bcrypt'
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
+import sharp from 'sharp'
 
 export const route = express.Router()
 
@@ -18,7 +20,7 @@ route.get('/getDetails', authenticate, async (req, res) => {
     let success = false
     try {
         const _id = req.user.id
-        const user = await User.findById(_id).select('-password')
+        const user = await User.findById(_id).select('-password -imageRef')
         success = true
         return res.status(200).json({
             success,
@@ -34,7 +36,7 @@ route.patch('/update', authenticate, async (req, res) => {
     let success = false
     try {
         if (req.body.username !== undefined) {
-            const user = await User.findOne({username:req.body.username})
+            const user = await User.findOne({ username: req.body.username })
             console.log(user)
             if (user !== null) {
                 return res.status(403).json({ success, error: "username is already taken" })
@@ -94,19 +96,100 @@ route.post('/resend', authenticate, OTPcheck, async (req, res) => {
         const codeId = req.OTP_secret.id
         const userid = req.user.id
         const { secret, token } = OTPGenerator()
-        const OTPdoc =await OTP.findByIdAndUpdate(codeId, { $set: { secret, created_At: Date.now() } })
-        const user=await User.findById(userid)
-        if(OTPdoc.user.toString() !== userid){
-            return res.status(200).json({success,error:"Unauthorized"})
+        const OTPdoc = await OTP.findByIdAndUpdate(codeId, { $set: { secret, created_At: Date.now() } })
+        const user = await User.findById(userid)
+        if (OTPdoc.user.toString() !== userid) {
+            return res.status(200).json({ success, error: "Unauthorized" })
         }
         success = true
-         await mailsender({
+        await mailsender({
             from: "Resend Verfication Email<noreply.geemble@gmail.com>",
             to: user.email,
             subject: 'Verfication email',
-            body: `<p style="font-size:14px">Your resended OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
+            body: `<html lang="en">
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <style>
+                .main-body {
+                  margin: 0 auto;
+                  max-width: 1070px;
+                  font-weight: 500;
+                  font-size: 16px;
+                }
+                .logo p {
+                  font-weight: 600;
+                  display: table-cell;
+                  vertical-align: middle;
+                  font-size: 25px;
+                  margin: 0;
+                  padding-left: 5px;
+                }
+                .main-body .main-content {
+                  margin-top: 10px;
+                  border: 1px solid gray;
+                  border-radius: 4px;
+                  padding: 25px 50px;
+                }
+                .main-body .token {
+                  padding: 12px 15px;
+                  width: auto;
+                  font-size: 20px;
+                  margin: 20px auto;
+                  font-weight: 600;
+                  background-color: rgb(12, 97, 255);
+                  color: white;
+                  border-radius: 12px;
+                  display: inline-block;
+          
+                }
+                .outer-token{
+                  width:100%;
+                  text-align: center;
+                }
+                .logo {
+                  height: 50px;
+                  display: table;
+                }
+                @media only screen and (max-width: 678px) {
+                  .main-body {
+                    font-size: 10px;
+                  }
+                  .main-body .main-content {
+                    padding: 20px;
+                  }
+                  .logo p{
+                    font-size: 18px;
+                  }
+                  .main-body .token{
+                    font-size: 12px;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="main-body" >
+                <div class="logo" >
+                  <img src="${process.env.LOGO_URL}/Geemble_Logo.png"  alt="logo" width="50" height="50">
+                    <p> eemble</p>
+                </div>
+                <div class="main-content">
+                  <p>Hi, ${user.name}</p>
+                  <p>Thank you for registering yourself in <span style="font-weight: 700;"> Geemble </span>. A new OTP is resended to you use this to verify yourself in the verify page. This OTP is only valid for 60 seconds.</p>
+                  <div class="outer-token">
+                    <div class='token' >
+                      ${token}
+                    </div> 
+                  </div>
+                  <p>Regards,
+                    <span style="font-weight: 700;display: block;">Geemble</span>
+                  </p>
+                </div>
+              </div>
+            </body>
+          </html>
+          `
         })
-         return  res.status(200).json({ success, msg: 'OTP resended',OTPtoken})
+        return res.status(200).json({ success, msg: 'OTP resended' })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "something happend" })
@@ -125,8 +208,8 @@ route.get('/searchUser', authenticate, async (req, res) => {
                 result: []
             })
         }
-        const regex=new RegExp('^' + username)
-        const users = await User.find({ username: { $regex: regex  } }).select('-password -verified -email -_id').then(datas => datas.filter(data => data.id !== req.user.id))
+        const regex = new RegExp('^' + username)
+        const users = await User.find({ username: { $regex: regex } }).select('-password -verified -email -imageRef').then(datas => datas.filter(data => data.id !== req.user.id))
         success = true
         res.status(200).json({
             success,
@@ -143,7 +226,7 @@ route.get('/getUser/:username', authenticate, async (req, res) => {
     let success = false
     try {
         const username = req.params.username
-        const user = await User.findOne({ username }).select('-password -verified -email -_id')
+        const user = await User.findOne({ username }).select('-password -verified -email  -imageRef')
         success = true
         res.status(200).json({
             success,
@@ -158,11 +241,24 @@ route.get('/getUser/:username', authenticate, async (req, res) => {
 route.post('/changeDP', authenticate, upload.single('uploadImage'), async (req, res) => {
     let success = false
     try {
-        const filepath = req.file.path.replace(/\\/g, '/')
-        const user = await User.findByIdAndUpdate(req.user.id, { $set: { profilePicture: filepath } })
-        unlink(user.profilePicture)
+        const filename=`${new Date().toISOString()}-${req.file.originalname}`
+        const user = await User.findById(req.user.id)
+        const previosRef=user.imageRef
+        const storage=getStorage()
+        const imageFileRef=`users/${filename}`
+        const imageRef=ref(storage,imageFileRef)
+        let imageData=await sharp(req.file.buffer).webp({quality:20}).toBuffer()
+        imageData=new Uint8Array(Buffer.from(imageData))
+        await uploadBytes(imageRef,imageData,{contentType:'image/webp'})
+        const url=await getDownloadURL(imageRef)
+        const userPromise=User.findByIdAndUpdate(user.id,{$set:{ profilePicture: url,imageRef:imageFileRef }})
+        const postPromise=Posts.updateMany({user:user.id},{$set:{profilePicture:url}})
+        await Promise.all([userPromise,postPromise])
+        if (previosRef!== undefined) {
+            const previosImgRef=ref(storage,previosRef)
+            await deleteObject(previosImgRef)
+        }
         success = true
-        await Posts.updateMany({user:user.id},{profilePicture:filepath})
         res.status(200).json({ success, messege: "Dp changed" })
     } catch (error) {
         console.log(error)

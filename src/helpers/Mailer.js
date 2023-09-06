@@ -3,8 +3,8 @@ import {config} from 'dotenv'
 
 config()
 const credentialsObj={
-        client_id: "1004406759218-25gdom7ca0eu5g5mg4tmtlemmbpsou6d.apps.googleusercontent.com",
-        client_secret: "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",
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
         redirect_uris: [
             "http://localhost:3000"
         ]

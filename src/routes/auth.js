@@ -30,6 +30,7 @@ route.post('/register', [
         return res.status(400).json({ errors: errors.array() });
     }
     try {
+        console.log('hello')
         const { name, username, email, password, gender } = req.body
         let user = await User.find({ $or: [{ email }, { username }] })
         if (user.length) {
@@ -68,7 +69,88 @@ route.post('/register', [
             from: "Verfication Email<noreply.geemble@gmail.com>",
             to: response.email,
             subject: 'Verfication email',
-            body: `<p style="font-size:14px">Your OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
+            body: ` <html lang="en">
+              <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                <style>
+                  .main-body {
+                    margin: 0 auto;
+                    max-width: 1070px;
+                    font-weight: 500;
+                    font-size: 16px;
+                  }
+                  .logo p {
+                    font-weight: 600;
+                    display: table-cell;
+                    vertical-align: middle;
+                    font-size: 25px;
+                    margin: 0;
+                    padding-left: 5px;
+                  }
+                  .main-body .main-content {
+                    margin-top: 10px;
+                    border: 1px solid gray;
+                    border-radius: 4px;
+                    padding: 25px 50px;
+                  }
+                  .main-body .token {
+                    padding: 12px 15px;
+                    width: auto;
+                    font-size: 20px;
+                    margin: 20px auto;
+                    font-weight: 600;
+                    background-color: rgb(12, 97, 255);
+                    color: white;
+                    border-radius: 12px;
+                    display: inline-block;
+            
+                  }
+                  .outer-token{
+                    width:100%;
+                    text-align: center;
+                  }
+                  .logo {
+                    height: 50px;
+                    display: table;
+                  }
+                  @media only screen and (max-width: 678px) {
+                    .main-body {
+                      font-size: 10px;
+                    }
+                    .main-body .main-content {
+                      padding: 20px;
+                    }
+                    .logo p{
+                      font-size: 18px;
+                    }
+                    .main-body .token{
+                      font-size: 12px;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="main-body" >
+                  <di class="logo" >
+                    <img src="${process.env.LOGO_URL}/Geemble_Logo.png"  alt="logo" width="50" height="50">
+                      <p> eemble</p>
+                  </di>
+                  <div class="main-content">
+                    <p>Hi, ${name}</p>
+                    <p>Thank you for registering yourself in <span style="font-weight: 700;"> Geemble </span>. Use this OTP to verify yourself in the verify page. This OTP is only valid for 60 seconds.</p>
+                    <div class="outer-token">
+                      <div class='token' >
+                        ${token}
+                      </div> 
+                    </div>
+                    <p>Regards,
+                      <span style="font-weight: 700;display: block;">Geemble</span>
+                    </p>
+                  </div>
+                </div>
+              </body>
+            </html>
+            `
         })
        return res.status(201).json({ success, authToken, OTPtoken })
     } catch (error) {
@@ -132,7 +214,96 @@ route.post('/forgetPassword', [body('email', 'Enter a Valid Email').isEmail()], 
             from: "Password Reset Verification<noreply.geemble@gmail.com>",
             to: email,
             subject: 'Verify Yourself',
-            body: `<p style="font-size:14px">Your OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
+            body: `<html lang="en">
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <style>
+                .main-body {
+                  margin: 0 auto;
+                  max-width: 1070px;
+                  font-weight: 500;
+                  font-size: 16px;
+                }
+                .logo p {
+                  font-weight: 600;
+                  display: table-cell;
+                  vertical-align: middle;
+                  font-size: 25px;
+                  margin: 0;
+                  padding-left: 5px;
+                }
+                .main-body .main-content {
+                  margin-top: 10px;
+                  border: 1px solid gray;
+                  border-radius: 4px;
+                  padding: 25px 50px;
+                }
+                .main-body .token {
+                  padding: 12px 15px;
+                  width: auto;
+                  font-size: 20px;
+                  margin: 20px auto;
+                  font-weight: 600;
+                  background-color: rgb(12, 97, 255);
+                  color: white;
+                  border-radius: 12px;
+                  display: inline-block;
+          
+                }
+                .outer-token{
+                  width:100%;
+                  text-align: center;
+                }
+                .logo {
+                  height: 50px;
+                  display: table;
+                }
+                @media only screen and (max-width: 678px) {
+                  .main-body {
+                    font-size: 10px;
+                  }
+                  .main-body .main-content {
+                    padding: 20px;
+                  }
+                  .logo p{
+                    font-size: 18px;
+                  }
+                  .main-body .token{
+                    font-size: 12px;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="main-body">
+                <div class="logo">
+                  <img src="${process.env.LOGO_URL}/Geemble_Logo.png" alt="logo" width="50" height="50" />
+                  <p>eemble</p>
+                </div>
+                <div class="main-content">
+                  <p>Hi, ${user.name}</p>
+                  <p>
+                    A forget password request has come from your
+                    <span style="font-weight: 700"> Geemble </span> account. Use this OTP
+                    to verify yourself in the verify page. This OTP is only valid for 60
+                    seconds.
+                  </p>
+                  <div class="outer-token">
+                    <div class="token" > ${token}</div>
+                  </div>
+                  <p>
+                    if this is not you please contact
+                    with the head developer,<strong> Soumesh </strong>
+                  </p>
+                  <p>
+                    Regards,
+                    <span style="font-weight: 700; display: block">Geemble</span>
+                  </p>
+                </div>
+              </div>
+            </body>
+          </html>
+          `
         })
         return res.status(200).json({ success, msg: "OTP sended", OTPtoken })
         console.log("sent")
@@ -189,9 +360,97 @@ route.post('/resend', OTPcheck, async (req, res) => {
             from: "Resend Verfication Email<noreply.geemble@gmail.com>",
             to: user.email,
             subject: 'Verfication email',
-            body: `<p style="font-size:14px">Your resended OTP is <strong style="font-size:16px">${token}</strong>. This OTP will expire in 60 seconds. Don't Share this OTP with anyone</p>`
+            body: `<html lang="en">
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <style>
+                .main-body {
+                  margin: 0 auto;
+                  max-width: 1070px;
+                  font-weight: 500;
+                  font-size: 16px;
+                }
+                .logo p {
+                  font-weight: 600;
+                  display: table-cell;
+                  vertical-align: middle;
+                  font-size: 25px;
+                  margin: 0;
+                  padding-left: 5px;
+                }
+                .main-body .main-content {
+                  margin-top: 10px;
+                  border: 1px solid gray;
+                  border-radius: 4px;
+                  padding: 25px 50px;
+                }
+                .main-body .token {
+                  padding: 12px 15px;
+                  width: auto;
+                  font-size: 20px;
+                  margin: 20px auto;
+                  font-weight: 600;
+                  background-color: rgb(12, 97, 255);
+                  color: white;
+                  border-radius: 12px;
+                  display: inline-block;
+          
+                }
+                .outer-token{
+                  width:100%;
+                  text-align: center;
+                }
+                .logo {
+                  height: 50px;
+                  display: table;
+                }
+                @media only screen and (max-width: 678px) {
+                  .main-body {
+                    font-size: 10px;
+                  }
+                  .main-body .main-content {
+                    padding: 20px;
+                  }
+                  .logo p{
+                    font-size: 18px;
+                  }
+                  .main-body .token{
+                    font-size: 12px;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="main-body">
+                <div class="logo">
+                  <img src="${process.env.LOGO_URL}/Geemble_Logo.png" alt="logo" width="50" height="50" />
+                  <p>eemble</p>
+                </div>
+                <div class="main-content">
+                  <p>Hi, ${user.name}</p>
+                  <p>
+                    A forget password request has come from your
+                    <span style="font-weight: 700"> Geemble </span> account. Use this OTP
+                    to verify yourself in the verify page. This OTP is only valid for 60
+                    seconds.
+                  </p>
+                  <div class="outer-token">
+                    <div class="token" > ${token}</div>
+                  </div>
+                  <p><strong>This is a resended new OTP!</strong> if this is not you please contact
+                    with the head developer,<strong> Soumesh </strong>
+                  </p>
+                  <p>
+                    Regards,
+                    <span style="font-weight: 700; display: block">Geemble</span>
+                  </p>
+                </div>
+              </div>
+            </body>
+          </html>
+          `
         })
-     return res.status(200).json({ success, msg: 'OTP resended', OTPtoken })
+     return res.status(200).json({ success, msg: 'OTP resended' })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "something happend" })

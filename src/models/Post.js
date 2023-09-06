@@ -6,6 +6,7 @@ const PostSchema = mongoose.Schema({
     profilePicture:{type:String,required:true},
     caption: { type: String },
     postedImage: { type: String },
+    imageRef:{type:String},
     Date: { type: Date, default: Date.now },
     likes: {
         type: [{
