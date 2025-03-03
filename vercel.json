@@ -16,7 +16,7 @@
             "dest": "/uploads/$1"
         },
         {
-            "src": "/api/(auth|posts|users)/(.*)",
+            "src": "/api/(auth|posts|user)/(.*)",
             "dest": "/src/index.js"
         }
     ]
