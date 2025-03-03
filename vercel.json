@@ -12,12 +12,12 @@
     ],
     "routes": [
         {
-            "src": "/(.*)",
-            "dest": "/src/index.js"
-        },
-        {
             "src": "/api/uploads/(.*)",
             "dest": "/uploads/$1"
+        },
+        {
+            "src": "/api/(auth|posts|users)/(.*)",
+            "dest": "/src/index.js"
         }
     ]
 }
