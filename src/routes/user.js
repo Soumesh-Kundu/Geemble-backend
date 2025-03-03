@@ -168,7 +168,7 @@ route.post('/resend', authenticate, OTPcheck, async (req, res) => {
             <body>
               <div class="main-body" >
                 <div class="logo" >
-                  <img src="${process.env.LOGO_URL}/Geemble_Logo.png"  alt="logo" width="50" height="50">
+                  <img src="${process.env.FRONTEND_URL}/Geemble_Logo.png"  alt="logo" width="50" height="50">
                     <p> eemble</p>
                 </div>
                 <div class="main-content">
