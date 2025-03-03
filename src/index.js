@@ -20,7 +20,7 @@ app.use(cookieParser())
 app.use(express.json())
 InitFirebase()
 
-app.use('/api/uploads',express.static('uploads'))
+app.use(express.static('uploads'))
 app.use('/api/auth',authRoute)
 app.use('/api/user',userRoute)
 app.use('/api/posts',postRoute)
