@@ -71,7 +71,7 @@ route.post('/verify', authenticate, OTPcheck, async (req, res) => {
         if (code.user.toString() !== id) {
             return res.status(401).json({ success, error: "Unauthorized access" })
         }
-        if (Date.now() - code.created_At > 60000) {
+        if (Date.now() - code.created_At > 1000*60*15) {
             res.status(408).json({ success, error: "OTP has expired" })
             await OTP.findByIdAndDelete(code.id)
             return

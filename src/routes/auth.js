@@ -321,7 +321,7 @@ route.post('/verify', OTPcheck, async (req, res) => {
         if (!code) {
             return res.status(401).json({ success, error: "OTP doesn't exist" })
         }
-        if (Date.now() - code.created_At > 1000*60*15) {
+        if (Date.now() - code.created_At > 1000*60*10) {
             res.status(408).json({ success, error: "OTP has expired" })
             await OTP.findByIdAndDelete(code.id)
             return

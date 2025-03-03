@@ -26,7 +26,7 @@ app.use('/api/user',userRoute)
 app.use('/api/posts',postRoute)
 app.get('/',async (req,res)=>{
     mailsender({
-        from:"Geemble Hello <noreply@geemble.live>",
+        from:"Geemble <noreply@geemble.live>",
         to:"iamsoumo26@gmail.com",
         subject:"Hello",
         html:"<h1>Hello</h1>",
