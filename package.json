@@ -1,0 +1,27 @@
+{
+  "name": "server",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon ./src/index.js --w ./src/**/*",
+    "start": "node ./src/index.js",
+    "mail": "node ./src/helpers/Mailer.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "5.0.1",
+    "express-validator": "^7.2.1",
+    "firebase": "^11.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.2",
+    "multer": "^1.4.5-lts.1",
+    "resend": "^4.1.2",
+    "sharp": "^0.33.5",
+    "speakeasy": "^2.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
